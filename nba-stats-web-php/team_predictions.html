@@ -1,0 +1,53 @@
+<?php
+require_once 'db_connect.php';
+header('Content-Type: application/json');
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $team_id = $_POST['team_id'] ?? '';
+    $window = intval($_POST['game_window'] ?? 5);
+
+    if (!$team_id) {
+        echo json_encode(["error" => "No team selected."]);
+        exit;
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT win, loss, points_scored, points_allowed
+        FROM games
+        WHERE team_id = :team_id
+        ORDER BY game_date DESC
+        LIMIT :game_window
+    ");
+
+    $stmt->bindParam(':team_id', $team_id, PDO::PARAM_STR);
+    $stmt->bindValue(':game_window', $window, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $games = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($games)) {
+        echo json_encode(["error" => "No recent games found for this team."]);
+        exit;
+    }
+
+    $total_wins = 0;
+    $total_points = 0;
+    $total_allowed = 0;
+
+    foreach ($games as $game) {
+        $total_wins += $game['win'];
+        $total_points += $game['points_scored'];
+        $total_allowed += $game['points_allowed'];
+    }
+
+    $avg_points = round($total_points / $window, 2);
+    $avg_allowed = round($total_allowed / $window, 2);
+    $win_rate = round(($total_wins / $window) * 100, 2);
+
+    echo json_encode([
+        "win_rate" => $win_rate,
+        "avg_points" => $avg_points,
+        "avg_allowed" => $avg_allowed
+    ]);
+}
+?>

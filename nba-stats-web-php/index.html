@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>NBA Stats Central</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+    
+        <!-- Banner -->
+        <header>
+            <img src="banner.gif" alt="NBA Banner" class="banner">
+        </header>
+    
+        <!-- Navigation Bar -->
+        <nav>
+            <ul>
+                <li><a href="index.html">🏠 Home</a></li>
+                <li><a href="player_stats.html">🏀 Player Stats</a></li>
+                <li><a href="team_simulations.html">📊 Team Simulations</a></li>
+                <li><a href="predictions.html">🔮 Predictions</a></li>
+                <li><a href="comparisons.html">⚖ Comparisons</a></li>
+                <li><a href="game_trends.html">📈 Game Trends</a></li>
+                <li><a href="team_leaders.html">❗❗❗ Team Leaders</a></li>
+            </ul>
+        </nav>
+    
+        <!-- Left & Right Side GIFs -->
+        <div class="left-gif">
+            <img src="nba-nba-players.gif" alt="NBA Animation">
+        </div>
+    
+        <div class="right-gif">
+            <img src="nba-nba-players.gif" alt="NBA Animation">
+        </div>
+    
+        <!-- Main Content -->
+        <div class="container">
+            <h2>🔥 NBA Highlights 🔥</h2>
+            <div class="carousel-container">
+                <div class="carousel">
+                    <img src="Jordan.gif" class="active" alt="Michael Jordan Dunk">
+                    <img src="Kyrie.gif" alt="Kyrie Irving Dribble">
+                    <img src="Lebron.gif" alt="LeBron James Drive">
+                    <img src="Steph.gif" alt="Stephen Curry Layup">
+                </div>
+            </div>
+    
+            <!-- Embedded YouTube Video -->
+            <div class="video-embed">
+                <h2>🎥 Featured Game Highlight</h2>
+                <iframe width="100%" height="400" 
+                    src="https://www.youtube.com/embed/KNiLvJP5Pp8?autoplay=1&mute=1&rel=0"
+                    title="YouTube video player" frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    
+          <script>
+            function toggleSubwindow() {
+              const sub = document.getElementById('subwindow');
+              sub.style.display = sub.style.display === 'flex' ? 'none' : 'flex';
+            }
+          </script>
+        <footer class="espn-footer">
+            <div class="footer-columns">
+                <div class="footer-column">
+                <div class="team-section">
+                    <h4>Central Stats+</h4>
+                    <ul class="team-row">
+    
+             <h4>ATLANTIC</h4>
+            <li><img src="images/teams/celtics.png" class="team-icon">
+            <a href="https://www.nba.com/celtics" target="_blank" class="team-link">Boston Celtics</a></li>
+            <li><img src="images/teams/brooklyn-nets.png" class="team-icon">
+                <a href="https://www.nba.com/nets" target="_blank" class="team-link">Brooklyn Nets</a></li>
+            <li><img src="images/teams/knicks.png" class="team-icon">
+                <a href="https://www.nba.com/knicks" target="_blank" class="team-link">New York Knicks</a></li>
+            <li><img src="images/teams/76ers.png" class="team-icon">
+                <a href="https://www.nba.com/sixers" target="_blank" class="team-link">Philadelphia 76ers</a></li>
+            <li><img src="images/teams/raptors.png" class="team-icon">
+                <a href="https://www.nba.com/raptors" target="_blank" class="team-link">Toronto Raptors</a></li>
+                <ul class="team-row"></ul>
+            <h4>CENTRAL</h4>
+            <li><img src="images/teams/bulls.png" class="team-icon">
+                <a href="https://www.nba.com/bulls" target="_blank" class="team-link">Chicago Bulls</a></li>
+            <li><img src="images/teams/cavaliers.png" class="team-icon">
+                <a href="https://www.nba.com/cavaliers" target="_blank" class="team-link">Cleveland Cavaliers</a></li>
+            <li><img src="images/teams/pistons.png" class="team-icon">
+                <a href="https://www.nba.com/pistons" target="_blank" class="team-link">Detroit Pistons</a></li>
+            <li><img src="images/teams/pacers.png" class="team-icon">
+                <a href="https://www.nba.com/pacers" target="_blank" class="team-link">Indiana Pacers</a></li>
+            <li><img src="images/teams/bucks.png" class="team-icon">
+                <a href="https://www.nba.com/bucks" target="_blank" class="team-link">Milwaukee Bucks</a></li>
+                <ul class="team-row"></ul>
+            <h4>SOUTHEAST</h4>
+            <li><img src="images/teams/hawks.png" class="team-icon">
+                <a href="https://www.nba.com/hawks" target="_blank" class="team-link">Atlanta Hawks</a></li>
+            <li><img src="images/teams/hornets.png" class="team-icon">
+                <a href="https://www.nba.com/hornets" target="_blank" class="team-link">Charlotte Hornets</a></li>
+            <li><img src="images/teams/heat.png" class="team-icon">
+                <a href="https://www.nba.com/heat" target="_blank" class="team-link">Miami Heat</a></li>
+            <li><img src="images/teams/magic.png" class="team-icon">
+                <a href="https://www.nba.com/magic" target="_blank" class="team-link">Orlando Magic</a></li>
+            <li><img src="images/teams/wizards.png" class="team-icon">
+                <a href="https://www.nba.com/wizards" target="_blank" class="team-link">Washington Wizards</a></li>
+                <ul class="team-row"></ul>
+            <h4>NORTHWEST</h4>
+            <li><img src="images/teams/nuggets.png" class="team-icon">
+                <a href="https://www.nba.com/nuggets" target="_blank" class="team-link">Denver Nuggets</a></li>
+            <li><img src="images/teams/timberwolves.png" class="team-icon">
+                <a href="https://www.nba.com/timberwolves" target="_blank" class="team-link">Minnesota Timberwolves</a></li>
+            <li><img src="images/teams/thunder.png" class="team-icon">
+                <a href="https://www.nba.com/thunder" target="_blank" class="team-link">Oklahoma City Thunder</a></li>
+            <li><img src="images/teams/trail_blazers.png" class="team-icon">
+                <a href="https://www.nba.com/blazers" target="_blank" class="team-link">Portland Trail Blazers</a></li>
+            <li><img src="images/teams/jazz.png" class="team-icon">
+                <a href="https://www.nba.com/jazz" target="_blank" class="team-link">Utah Jazz</a></li>
+                <ul class="team-row"></ul>
+            <h4>PACIFIC</h4>
+            <li><img src="images/teams/warriors.png" class="team-icon">
+                <a href="https://www.nba.com/warriors" target="_blank" class="team-link">Golden State Warriors</a></li>
+            <li><img src="images/teams/clippers.png" class="team-icon">
+                <a href="https://www.nba.com/clippers" target="_blank" class="team-link">LA Clippers</a></li>
+            <li><img src="images/teams/lakers.png" class="team-icon">
+                <a href="https://www.nba.com/lakers" target="_blank" class="team-link">Los Angeles Lakers</a></li>
+            <li><img src="images/teams/suns.png" class="team-icon">
+                <a href="https://www.nba.com/suns" target="_blank" class="team-link">Phoenix Suns</a></li>
+            <li><img src="images/teams/kings.png" class="team-icon">
+                <a href="https://www.nba.com/kings" target="_blank" class="team-link">Sacramento Kings</a></li>
+                <ul class="team-row"></ul>
+            <h4>SOUTHWEST</h4>
+            <li><img src="images/teams/mavericks.png" class="team-icon">
+                <a href="https://www.nba.com/mavericks" target="_blank" class="team-link">Dallas Mavericks</a></li>
+            <li><img src="images/teams/rockets.png" class="team-icon">
+                <a href="https://www.nba.com/rockets" target="_blank" class="team-link">Houston Rockets</a></li>
+            <li><img src="images/teams/grizzlies.png" class="team-icon">
+                <a href="https://www.nba.com/grizzlies" target="_blank" class="team-link">Memphis Grizzlies</a></li>
+            <li><img src="images/teams/pelicans.png" class="team-icon">
+                <a href="https://www.nba.com/pelicans" target="_blank" class="team-link">New Orleans Pelicans</a></li>
+            <li><img src="images/teams/spurs.png" class="team-icon">
+                <a href="https://www.nba.com/spurs" target="_blank" class="team-link">San Antonio Spurs</a></li>
+            </div>
+    
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://www.espn.com/mens-college-basketball/tournament/bracket" target="_blank">🏀 Men’s NCAA Bracket</a></li>
+                        <li><a href="https://www.espn.com/womens-college-basketball/tournament/bracket" target="_blank">🏀 Women’s NCAA Bracket</a></li>
+                        <li><a href="https://fantasy.espn.com/tournament-challenge-bracket/2024/en/" target="_blank">🏆 Tournament Challenge</a></li>
+                        <li><a href="https://www.espn.com/nba/story/_/id/35549676/nba-trade-tracker-grades-details-every-deal-2024" target="_blank">🧠 Trades</a></li>
+                        <li><a href="https://www.espn.com/mens-college-basketball/story/_/id/39830999/march-madness-2024-ncaa-tournament-schedule-dates" target="_blank">🏀 March Madness</a></li>
+                        <li><a href="https://www.espn.com/watch/" target="_blank">📺 Where To Watch</a></li>
+                    </ul>
+                </div>
+    
+                <div class="footer-column">
+                    <h4>Follow Central Stats</h4>
+                    <ul>
+                        <li>📘 Facebook</li>
+                        <li>🐦 X/Twitter</li>
+                        <li>📸 Instagram</li>
+                        <li>👻 Snapchat</li>
+                        <li>🎵 TikTok</li>
+                        <li>📺 YouTube</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <img src="Central stats-logo.png" alt="Central Stats Logo" height="30">
+                <p>&copy; 2025 Central Stats Enterprises, Inc. All rights reserved.</p>
+            </div>
+        </footer>
+    
+        <script>
+            let currentIndex = 0;
+            const images = document.querySelectorAll(".carousel img");
+    
+            function changeImage() {
+                images[currentIndex].classList.remove("active");
+                currentIndex = (currentIndex + 1) % images.length;
+                images[currentIndex].classList.add("active");
+            }
+    
+            setInterval(changeImage, 4000);
+        </script>
+    
+    </body>
+    </html>

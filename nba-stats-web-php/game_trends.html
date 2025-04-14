@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Game Trends</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .team-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin: 0 10px;
+}
+
+.vs {
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+}
+        body {
+            background-color: #0E2240;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+
+        .team-box {
+            background-color: #0E2240;
+            border: 2px solid #FDB927;
+            border-radius: 12px;
+            margin: 20px auto;
+            width: 80%;
+            padding: 15px;
+            box-shadow: 0px 4px 10px rgba(255, 186, 59, 0.5);
+        }
+
+        h1 {
+            color: #FDB927;
+            margin-bottom: 20px;
+        }
+
+        .game-card {
+            background-color: #1D428A;
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #FDB927;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 2px 2px 8px rgba(255, 186, 59, 0.5);
+        }
+
+        .game-card img {
+            width: 50px;
+            height: 50px;
+            margin: 0 15px;
+        }
+
+        .game-card span {
+            font-size: 18px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .game-card .date {
+            font-size: 16px;
+            color: #FDB927;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .next-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #FDB927;
+            color: #0E2240;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .next-button:hover {
+            background-color: #FFC72C;
+        }
+        .game-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #123d6e;
+    border-radius: 10px;
+    margin: 0 auto 15px auto; /* THIS centers the game card */
+    border: 2px solid gold;
+    width: 80%; /* Optional: adjust width as needed */
+    max-width: 800px; /* Optional: keeps it from stretching too far on wide screens */
+}
+
+
+.team-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+}
+
+.team-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.team-name {
+    margin-top: 8px;
+    font-size: 14px;
+    color: white;
+    text-align: center;
+}
+
+.center-info {
+    text-align: center;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+.score {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+.center-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+    </style>
+     <script>
+        let currentPage = 1;
+
+        function loadStats(page = 1) {
+            fetch(`game_trends.php?page=${page}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('stats-container').innerHTML = data;
+                    currentPage = page;
+                })
+                .catch(error => console.log('Error loading stats:', error));
+        }
+
+        function goToNextPage() {
+            loadStats(currentPage + 1);
+        }
+
+        function goToPrevPage() {
+            if (currentPage > 1) {
+                loadStats(currentPage - 1);
+            }
+        }
+
+        window.onload = () => loadStats(1);
+    </script>
+</head>
+<nav>
+    <ul>
+        <li><a href="index.html">🏠 Home</a></li>
+        <li><a href="player_stats.html">🏀 Player Stats</a></li>
+        <li><a href="team_simulations.html">📊 Team Simulations</a></li>
+        <li><a href="predictions.html">🔮 Predictions</a></li>
+        <li><a href="comparisons.html">⚖ Comparisons</a></li>
+        <li><a href="game_trends.html">📈 Game Trends</a></li>
+        <li><a href="team_leaders.html">❗❗❗ Team Leaders</a></li>
+    </ul>
+</nav>
+<body>
+    <div class="center-wrapper">
+        <div class="team-box">
+            <h1>NBA Game Trends</h1>
+            <div id="stats-container">
+                <p>Loading game trends...</p>
+            </div>
+            <div class="pagination">
+                <button onclick="goToPrevPage()">« Previous</button>
+                <button onclick="goToNextPage()">Next »</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

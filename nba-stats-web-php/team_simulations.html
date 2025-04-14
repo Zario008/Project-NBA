@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Team Simulations</title>
+    <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+
+<body>
+  <div id="header"></div>
+<script>fetch('header.html').then(res => res.text()).then(data => document.getElementById('header').innerHTML = data);</script>
+    <h1>NBA Team Simulation</h1>
+    <form id="simulateForm">
+        <label for="teamA">Select Team A:</label>
+        <select id="teamA">
+          <option value="" disabled selected>Select a team</option>
+          <!-- Team A options will be populated dynamically here -->
+        </select>
+        
+        <label for="teamB">Select Team B:</label>
+        <select id="teamB">
+          <option value="" disabled selected>Select a team</option>
+          <!-- Team B options will be populated dynamically here -->
+        </select>
+      
+        <button type="submit">Simulate Game</button>
+      </form>
+      <button id="trainModelBtn">Train Model</button>
+
+
+      <div id="simulationResult"></div>
+      <div id="teamStatsDisplay"></div>
+    
+      <!-- Link to your script -->
+      <script src="simulation2.js"></script>
+</body>
+</html>

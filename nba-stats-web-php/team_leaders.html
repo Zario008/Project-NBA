@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css"> <!-- Your custom CSS -->
+    <title>NBA Team Leaders</title>
+    <style>
+        
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+    <!-- Placeholder for the Header -->
+    <div id="header.html"></div>
+
+    <h1>NBA Team Leaders</h1>
+    
+    <table>
+       
+        <tbody id="team-leaders-table">
+            <!-- Data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Load header dynamically
+        fetch('header.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('header.html').innerHTML = data;
+        })
+        .catch(error => console.error('Error loading header:', error));
+
+        // Fetch data from PHP file and populate the table
+        fetch('team_leaders.php')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('team-leaders-table').innerHTML = data;
+        })
+        .catch(error => console.error('Error loading team leaders:', error));
+    </script>
+
+</body>
+</html>
