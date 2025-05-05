@@ -21,33 +21,4 @@ function getPlayerSuggestions($conn, $playerName) {
     }
     return $suggestions;
 }
-<script>
-document.getElementById("teamInput").addEventListener("input", async function() {
-    const query = this.value;
-    const suggestionsBox = document.getElementById("teamSuggestions");
-    suggestionsBox.innerHTML = "";
-
-    if (query.length < 1) return;
-
-    try {
-        const res = await fetch(`suggest_teams.php?term=${encodeURIComponent(query)}`);
-        const teams = await res.json();
-
-        teams.forEach(team => {
-            const li = document.createElement("li");
-            li.textContent = team.label;
-            li.style.cursor = "pointer";
-            li.style.background = "#fff";
-            li.style.color = "#000";
-            li.style.padding = "5px";
-            li.onclick = () => {
-                document.getElementById("teamInput").value = team.label;
-                suggestionsBox.innerHTML = "";
-            };
-            suggestionsBox.appendChild(li);
-        });
-    } catch (err) {
-        console.error("Autocomplete error:", err);
-    }
-});
-</script>
+?>

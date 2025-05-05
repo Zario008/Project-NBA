@@ -8,26 +8,37 @@ $dbname = "nba_stats_db";
 
 // Sportradar API credentials
 $api_key = "hK8vG9tqR10teJ3AsR9vQUyeT6ir7LQvqAj29HZJ"; // Replace with your actual API key
-$season_schedule_url = "https://api.sportradar.com/nba/trial/v8/en/games/2025/REG/schedule.json?api_key=$api_key"; // Adjust year & season type as needed
+$season_schedule_url = "https://api.sportradar.com/nba/trial/v8/en/games/2024/REG/schedule.json?api_key=$api_key"; // Adjust year & season type as needed
 
 // Function to fetch API data using cURL
-function fetch_api_data($url) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+function fetch_api_data($url, $max_retries = 5) {
+    $attempt = 0;
 
-    if ($http_code == 403) {
-        die("Error 403: Forbidden - Check API key and permissions.");
-    } elseif ($http_code != 200) {
-        die("HTTP Error $http_code while fetching data.");
+    while ($attempt < $max_retries) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($http_code == 200) {
+            return $response;
+        } elseif ($http_code == 429) {
+            $wait_time = pow(2, $attempt); // Exponential backoff: 1s, 2s, 4s, 8s...
+            echo "HTTP 429: Rate limit hit. Waiting {$wait_time} seconds before retry...\n";
+            sleep($wait_time);
+            $attempt++;
+        } elseif ($http_code == 403) {
+            die("Error 403: Forbidden - Check API key and permissions.");
+        } else {
+            die("HTTP Error $http_code while fetching data.");
+        }
     }
 
-    return $response;
+    die("Exceeded maximum retry attempts due to repeated 429 errors.");
 }
 
 try {
@@ -102,7 +113,7 @@ try {
         ]);
 
         echo "Inserted/Updated data for game ID: $game_id\n";
-        sleep(1); // Prevent hitting API rate limits
+        sleep(3); // Prevent hitting API rate limits
     }
 
     echo "Data collection complete!";

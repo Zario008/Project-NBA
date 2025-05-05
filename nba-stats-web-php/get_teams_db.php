@@ -1,28 +1,28 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+header('Content-Type: application/json');
 
-include 'config.php';
+// DB connection
+$host = "localhost";
+$db = "nba_stats_db"; // <-- adjust if your DB name is different
+$user = "root";
+$pass = "";
+$conn = new mysqli($host, $user, $pass, $db);
 
-$query = "SELECT team_id, name, win_pct FROM teams ORDER BY name";
-$result = $conn->query($query);
-
-if ($result) {
-    $teams = [];
-    while ($row = $result->fetch_assoc()) {
-        $teams[] = [
-            'team_id' => $row['team_id'],
-            'name' => $row['name'],
-            'win_pct' => $row['win_pct']
-        ];
-    }
-
-    // Return the result as JSON
-    header('Content-Type: application/json');
-    echo json_encode($teams);
-} else {
-    // If there's an error with the query, return an error message as JSON
-    http_response_code(500); // Internal server error
-    echo json_encode(['error' => 'Database query failed']);
+// Check for connection error
+if ($conn->connect_error) {
+  http_response_code(500);
+  echo json_encode(["error" => "Database connection failed"]);
+  exit();
 }
+
+// Fetch teams
+$sql = "SELECT name, team_id FROM teams ORDER BY name ASC";
+$result = $conn->query($sql);
+
+$teams = [];
+while ($row = $result->fetch_assoc()) {
+  $teams[] = $row;
+}
+
+echo json_encode($teams);
 ?>

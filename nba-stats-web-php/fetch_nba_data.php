@@ -123,7 +123,7 @@ if ($player_data &&
     $stats = $player_data['seasons'][0]['teams'][0]['statistics']['average'];
 
     $stmt = $conn->prepare("
-        INSERT INTO player_stats (player_id, season_year, season_type, team_id, avg_points, avg_rebounds, avg_assists, avg_steals, avg_blocks, avg_turnovers, avg_minutes, field_goal_pct, three_point_pct, free_throw_pct)
+        INSERT IGNORE INTO player_stats (player_id, season_year, season_type, team_id, avg_points, avg_rebounds, avg_assists, avg_steals, avg_blocks, avg_turnovers, avg_minutes, field_goal_pct, three_point_pct, free_throw_pct)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE 
         avg_points = VALUES(avg_points), 

@@ -1,50 +1,80 @@
 <?php
 header('Content-Type: application/json');
-include('config.php');
 
-$teamA_id = $_POST['teamA'] ?? null;
-$teamB_id = $_POST['teamB'] ?? null;
+// Replace this with your own DB connection setup
+$pdo = new PDO("mysql:host=localhost;dbname=nba_stats_db", "root", "");
 
-if (!$teamA_id || !$teamB_id) {
-    echo json_encode(['error' => 'Missing team IDs']);
+// Get selected team IDs
+$teamA = $_GET['teamA'] ?? '';
+$teamB = $_GET['teamB'] ?? '';
+
+if (!$teamA || !$teamB || $teamA === $teamB) {
+    echo json_encode(['error' => 'Invalid teams']);
     exit;
 }
 
-function getTeamInfo($conn, $team_id) {
-    $stmt = $conn->prepare("SELECT team_id, name, wins, losses FROM teams WHERE team_id = ?");
-    $stmt->bind_param("s", $team_id);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    if (!$result) return null;
-    $win_pct = ($result['wins'] + $result['losses']) > 0 ? $result['wins'] / ($result['wins'] + $result['losses']) : 0;
-    return [
-        'team_id' => $result['team_id'],
-        'name' => $result['name'],
-        'win_pct' => round($win_pct, 3)
+// Get team names for display
+$teams = [$teamA, $teamB];
+$teamStmt = $pdo->prepare("SELECT team_id, name FROM teams WHERE team_id IN (?, ?)");
+$teamStmt->execute([$teamA, $teamB]);
+$teamNames = [];
+while ($row = $teamStmt->fetch(PDO::FETCH_ASSOC)) {
+    $teamNames[$row['team_id']] = $row['name'];
+}
+
+// Get past game data between these teams
+$gameStmt = $pdo->prepare("
+    SELECT * FROM nba_game_summary 
+    WHERE (home_team_id = ? AND away_team_id = ?) 
+       OR (home_team_id = ? AND away_team_id = ?)
+    LIMIT 10
+");
+$gameStmt->execute([$teamA, $teamB, $teamB, $teamA]);
+$games = $gameStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get player averages for both teams
+$playerStmt = $pdo->prepare("
+    SELECT 
+        p.player_id,
+        p.team_id,
+        CONCAT(p.first_name, ' ', p.last_name) AS player_name,
+        p.position,
+        AVG(ps.avg_points) AS points,
+        AVG(ps.avg_rebounds) AS rebounds,
+        AVG(ps.avg_assists) AS assists,
+        AVG(ps.avg_steals) AS steals,
+        AVG(ps.avg_blocks) AS blocks,
+        AVG(ps.avg_turnovers) AS turnovers,
+        AVG(ps.avg_minutes) AS minutes
+    FROM players p
+    JOIN player_stats ps ON p.player_id = ps.player_id
+    WHERE p.team_id IN (?, ?)
+      AND ps.season_year = 2024
+      AND ps.season_type = 'REG'
+    GROUP BY p.player_id
+");
+$playerStmt->execute([$teamA, $teamB]);
+
+$playerAverages = [];
+while ($row = $playerStmt->fetch(PDO::FETCH_ASSOC)) {
+    $playerAverages[] = [
+        'player_id' => $row['player_id'],
+        'team_id' => $row['team_id'],
+        'player_name' => $row['player_name'],
+        'position' => $row['position'],
+        'points' => floatval($row['points']),
+        'rebounds' => floatval($row['rebounds']),
+        'assists' => floatval($row['assists']),
+        'steals' => floatval($row['steals']),
+        'blocks' => floatval($row['blocks']),
+        'turnovers' => floatval($row['turnovers']),
+        'minutes' => floatval($row['minutes']),
     ];
 }
 
-function getTeamPlayers($conn, $team_id) {
-    $stmt = $conn->prepare("
-        SELECT p.first_name, p.last_name, p.team_id, ps.avg_points, ps.avg_rebounds, ps.avg_assists, ps.avg_steals, ps.avg_blocks, ps.avg_turnovers
-        FROM players p
-        JOIN player_stats ps ON p.player_id = ps.player_id
-        WHERE p.team_id = ? AND ps.season_year = (SELECT MAX(season_year) FROM player_stats)
-    ");
-    $stmt->bind_param("s", $team_id);
-    $stmt->execute();
-    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-}
-
-$teamA_info = getTeamInfo($conn, $teamA_id);
-$teamB_info = getTeamInfo($conn, $teamB_id);
-$teamA_players = getTeamPlayers($conn, $teamA_id);
-$teamB_players = getTeamPlayers($conn, $teamB_id);
-
+// Return JSON response
 echo json_encode([
-    'teamA_info' => $teamA_info,
-    'teamB_info' => $teamB_info,
-    'teamA_players' => $teamA_players,
-    'teamB_players' => $teamB_players
+    'teams' => $teamNames,
+    'games' => $games,
+    'player_averages' => $playerAverages
 ]);
-?>

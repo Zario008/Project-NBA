@@ -2,38 +2,218 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NBA Team Simulations</title>
     <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <style>
+        select, button {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+        }
+        button {
+            background-color: #FDB927;
+            color: #0E2240;
+            cursor: pointer;
+        }
+        table {
+            margin: 20px auto;
+            width: 80%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #FDB927;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #FDB927;
+            color: #0E2240;
+        }
+    </style>
 </head>
 
 <body>
-  <div id="header"></div>
-<script>fetch('header.html').then(res => res.text()).then(data => document.getElementById('header').innerHTML = data);</script>
-    <h1>NBA Team Simulation</h1>
-    <form id="simulateForm">
-        <label for="teamA">Select Team A:</label>
-        <select id="teamA">
-          <option value="" disabled selected>Select a team</option>
-          <!-- Team A options will be populated dynamically here -->
-        </select>
-        
-        <label for="teamB">Select Team B:</label>
-        <select id="teamB">
-          <option value="" disabled selected>Select a team</option>
-          <!-- Team B options will be populated dynamically here -->
-        </select>
-      
-        <button type="submit">Simulate Game</button>
-      </form>
-      <button id="trainModelBtn">Train Model</button>
 
+<!-- Navigation -->
+<div id="header"></div>
+<script>
+fetch('header.html')
+  .then(res => res.text())
+  .then(data => document.getElementById('header').innerHTML = data);
+</script>
 
-      <div id="simulationResult"></div>
-      <div id="teamStatsDisplay"></div>
-    
-      <!-- Link to your script -->
-      <script src="simulation2.js"></script>
+<!-- Main Section -->
+<section style="background-color: #1D428A; min-height: 100vh; padding: 60px 20px; color: white; text-align: center;">
+  <h1 style="font-size: 36px; margin-bottom: 20px;">NBA Team Simulations</h1>
+  <p style="font-size: 18px; margin-bottom: 40px;">Simulate a matchup between any two NBA teams and view the simulated results!</p>
+
+  <label for="teamA">Select Team A:</label>
+  <select id="teamA"><option value="">Loading teams...</option></select>
+
+  <label for="teamB">Select Team B:</label>
+  <select id="teamB"><option value="">Loading teams...</option></select>
+
+  <button onclick="simulateGame()">Simulate Game</button>
+
+  <div id="scoreboard" class="scoreboard"></div>
+  <div id="boxscore" class="boxscore"></div>
+</section>
+
+<!-- JavaScript -->
+<script>
+const teamAveragePoints = {
+  "583ec5fd-fb46-11e1-82cb-f4ce4684ea4c": 117.8,
+  "583ec70e-fb46-11e1-82cb-f4ce4684ea4c": 115.8,
+  "583ec773-fb46-11e1-82cb-f4ce4684ea4c": 121.9,
+  "583ec7cd-fb46-11e1-82cb-f4ce4684ea4c": 117.4,
+  "583ec825-fb46-11e1-82cb-f4ce4684ea4c": 113.8,
+
+};
+
+window.onload = async function () {
+  const teamASelect = document.getElementById('teamA');
+  const teamBSelect = document.getElementById('teamB');
+
+  const response = await fetch('get_teams_db.php');
+  const teams = await response.json();
+
+  teamASelect.innerHTML = '';
+  teamBSelect.innerHTML = '';
+
+  for (const team of teams) {
+    const optionA = document.createElement('option');
+    optionA.value = team.team_id;
+    optionA.text = team.name;
+    const optionB = optionA.cloneNode(true);
+    teamASelect.appendChild(optionA);
+    teamBSelect.appendChild(optionB);
+  }
+};
+
+async function simulateGame() {
+  const teamA = document.getElementById('teamA').value;
+  const teamB = document.getElementById('teamB').value;
+
+  if (!teamA || !teamB || teamA === teamB) {
+    alert("Please select two different teams.");
+    return;
+  }
+
+  document.getElementById('scoreboard').innerHTML = 'Loading simulation...';
+  document.getElementById('boxscore').innerHTML = '';
+
+  const response = await fetch(`team_simulations2.php?teamA=${teamA}&teamB=${teamB}`);
+  const data = await response.json();
+
+  const scoreA = simulateScore(data, teamA);
+  const scoreB = simulateScore(data, teamB);
+
+  animateScore(teamA, teamB, scoreA, scoreB);
+  const simulatedPlayerStats = simulateBoxScore(data, teamA, teamB, scoreA, scoreB);
+
+  displayBoxScore({
+    player_stats: simulatedPlayerStats,
+    teams: data.teams
+  });
+}
+
+function simulateScore(data, teamId) {
+  const avgPoints = teamAveragePoints[teamId] || 110;
+  const games = data.games || [];
+  let teamPoints = 0, count = 0;
+  for (const g of games) {
+    if (g.home_team_id === teamId) {
+      teamPoints += g.home_team_points;
+      count++;
+    } else if (g.away_team_id === teamId) {
+      teamPoints += g.away_team_points;
+      count++;
+    }
+  }
+  const matchupAvg = count > 0 ? (teamPoints / count) : avgPoints;
+  const final = 0.6 * avgPoints + 0.4 * matchupAvg;
+  return Math.round(final + (Math.random() * 8 - 4));
+}
+
+function simulateBoxScore(data, teamA, teamB, scoreA, scoreB) {
+  const playerAverages = data.player_averages || [];
+  const teams = [teamA, teamB];
+  const result = [];
+  const teamScores = { [teamA]: scoreA, [teamB]: scoreB };
+  const statNames = ['rebounds', 'assists', 'steals', 'blocks', 'turnovers'];
+
+  for (const tid of teams) {
+    const players = playerAverages.filter(p => p.team_id === tid && !isNaN(parseFloat(p.minutes))).sort((a, b) => parseFloat(b.minutes) - parseFloat(a.minutes)).slice(0, 8);
+    if (players.length === 0) continue;
+    const weights = players.map(() => Math.random());
+    const weightSum = weights.reduce((a, b) => a + b, 0);
+    let pointShares = weights.map(w => Math.floor((w / weightSum) * teamScores[tid]));
+    let assignedPoints = pointShares.reduce((a, b) => a + b, 0);
+    const remaining = teamScores[tid] - assignedPoints;
+    const sortedIndices = [...Array(pointShares.length).keys()].sort((a, b) => weights[b] - weights[a]);
+    for (let i = 0; i < remaining; i++) {
+      pointShares[sortedIndices[i % sortedIndices.length]] += 1;
+    }
+    for (let i = 0; i < players.length; i++) {
+      const player = players[i];
+      const sim = {
+        player_id: player.player_id,
+        player_name: player.player_name,
+        team_id: tid,
+        points: pointShares[i]
+      };
+      for (const stat of statNames) {
+        const base = parseFloat(player[stat]);
+        const teamTotal = players.reduce((sum, p) => sum + (parseFloat(p[stat]) || 0), 0);
+        const scaled = (!isNaN(base) && teamTotal > 0) ? (base / teamTotal) * teamScores[tid] : 0;
+        sim[stat] = Math.round((scaled * pointShares[i]) / teamScores[tid]);
+      }
+      result.push(sim);
+    }
+  }
+  return result;
+}
+
+function displayBoxScore(data) {
+  const players = data.player_stats || [];
+  const teamNames = data.teams || {};
+  if (players.length === 0) {
+    document.getElementById('boxscore').innerHTML = '<h2>No box score available for this matchup.</h2>';
+    return;
+  }
+  let html = '<h2>Simulated Box Score</h2>';
+  html += `<table><tr><th>Player</th><th>Team</th><th>PTS</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>TO</th></tr>`;
+  for (const p of players) {
+    const teamName = teamNames[p.team_id] || p.team_id;
+    html += `<tr>
+      <td>${p.player_name}</td>
+      <td>${teamName}</td>
+      <td>${p.points}</td>
+      <td>${p.rebounds}</td>
+      <td>${p.assists}</td>
+      <td>${p.steals}</td>
+      <td>${p.blocks}</td>
+      <td>${p.turnovers}</td>
+    </tr>`;
+  }
+  html += `</table>`;
+  document.getElementById('boxscore').innerHTML = html;
+}
+
+function animateScore(teamA, teamB, scoreA, scoreB) {
+  let a = 0, b = 0;
+  const display = document.getElementById('scoreboard');
+  const interval = setInterval(() => {
+    if (a < scoreA) a++;
+    if (b < scoreB) b++;
+    display.innerHTML = `<h2>Simulated Final Score</h2><div class="animated-score">Team A: ${a} - Team B: ${b}</div>`;
+    if (a >= scoreA && b >= scoreB) clearInterval(interval);
+  }, 30);
+}
+</script>
+
 </body>
 </html>

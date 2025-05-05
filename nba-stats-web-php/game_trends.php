@@ -28,7 +28,7 @@ if ($page < 1) $page = 1;
 // Calculate the OFFSET
 $offset = ($page - 1) * $gamesPerPage;
 
-// Fetch paginated game data (customize your actual table/columns if needed)
+// Fetch paginated game data
 $query = "
     SELECT game_id, home_team_id, home_team_name, home_team_points, 
            away_team_id, away_team_name, away_team_points, game_date 

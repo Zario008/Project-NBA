@@ -3,47 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css"> <!-- Your custom CSS -->
+    <link rel="stylesheet" href="style.css"> 
     <title>NBA Team Leaders</title>
     <style>
-        
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid black; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-    </style>
-</head>
-<body>
-
-    <!-- Placeholder for the Header -->
-    <div id="header.html"></div>
-
-    <h1>NBA Team Leaders</h1>
+        body {
+          background-color: #0c3c78;
+          font-family: Arial, sans-serif;
+          color: white;
+          text-align: center;
+        }
     
-    <table>
-       
-        <tbody id="team-leaders-table">
-            <!-- Data will be inserted here dynamically -->
-        </tbody>
-    </table>
-
-    <script>
-        // Load header dynamically
+        .page-container {
+          max-width: 1000px; /* LIMIT width */
+          margin: 0 auto; /* CENTER the page */
+          padding: 20px;
+        }
+    
+        .team-card {
+          background-color: #0a2c5a;
+          border: 2px solid #ffb400;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 20px auto;
+          width: 100%;
+          max-width: 600px; 
+          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+    
+        .team-header {
+          margin-bottom: 20px;
+        }
+    
+        .team-logo {
+          width: 80px;
+          height: 80px;
+          object-fit: contain;
+          margin-bottom: 10px;
+        }
+    
+        .team-name {
+          font-size: 24px;
+          color: #ffb400;
+        }
+    
+        .team-leaders {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+    
+        .leader {
+          background-color: #123d72;
+          border-radius: 8px;
+          padding: 10px;
+          font-size: 18px;
+        }
+    
+        .category {
+          font-weight: bold;
+          color: #ffb400;
+        }
+    
+        .player-name {
+          margin-left: 5px;
+          color: #ffffff;
+        }
+    
+        .stat {
+          margin-left: 5px;
+          color: #ffb400;
+        }
+      </style>
+    </head>
+    <body>
+    
+      <div id="header"></div>
+      <script>
         fetch('header.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('header.html').innerHTML = data;
-        })
-        .catch(error => console.error('Error loading header:', error));
-
-        // Fetch data from PHP file and populate the table
+          .then(res => res.text())
+          .then(data => document.getElementById('header').innerHTML = data);
+      </script>
+    
+      <h1>NBA Team Leaders</h1>
+      <p style="font-size: 18px; margin-bottom: 30px;">
+        View the top players for each NBA team in points, rebounds, and assists. Updated dynamically from real stats.
+      </p>
+    
+      <div class="page-container">
+        <div id="team-leaders-table"></div> <!-- Moved inside container -->
+      </div>
+    
+      <script>
+        // Fetch data from PHP file and populate the team leaders section
         fetch('team_leaders.php')
-        .then(response => response.text())
-        .then(data => {
+          .then(response => response.text())
+          .then(data => {
             document.getElementById('team-leaders-table').innerHTML = data;
-        })
-        .catch(error => console.error('Error loading team leaders:', error));
-    </script>
-
-</body>
-</html>
+          })
+          .catch(error => console.error('Error loading team leaders:', error));
+      </script>
+    
+    </body>
+    </html>

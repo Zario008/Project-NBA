@@ -1,5 +1,5 @@
 <?php
-set_time_limit(500);
+set_time_limit(0);
 $host = 'localhost';
 $dbname = 'nba_stats_db';
 $user = 'root';
@@ -7,46 +7,59 @@ $pass = '';
 $api_key = 'hK8vG9tqR10teJ3AsR9vQUyeT6ir7LQvqAj29HZJ';
 $max_retries = 3;
 
+// Create log directory
+if (!file_exists("logs")) {
+    mkdir("logs", 0777, true);
+}
+
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Get all game IDs from nba_game_summary
+    // Get all game IDs from player_game_stats to avoid re-importing
+    $stmt = $pdo->query("SELECT DISTINCT game_id FROM player_game_stats");
+    $existingGameIds = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+
     $stmt = $pdo->query("SELECT game_id FROM nba_game_summary");
     $gameIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
     foreach ($gameIds as $gameId) {
+        // Skip if this game has already been imported
+        if (in_array($gameId, $existingGameIds)) {
+            echo "Game $gameId already imported. Skipping.\n";
+            continue;
+        }
+
         $retries = 0;
         $success = false;
-        
-        // Retry mechanism for API request in case of rate limiting (HTTP 429)
+
         while ($retries < $max_retries && !$success) {
             $url = "https://api.sportradar.us/nba/trial/v8/en/games/{$gameId}/summary.json?api_key={$api_key}";
-            $json = @file_get_contents($url);
-            
-            if ($json === false) {
-                // If the request failed (e.g., due to rate limit), wait and retry
+            $opts = ["http" => ["ignore_errors" => true]];
+            $context = stream_context_create($opts);
+            $json = file_get_contents($url, false, $context);
+
+            if ($json === false || strpos($http_response_header[0], "200") === false) {
+                echo "API request failed for game $gameId (HTTP: {$http_response_header[0]}). Retrying ($retries/$max_retries)...\n";
                 $retries++;
-                echo "API request failed for game $gameId. Retrying ($retries/$max_retries)...\n";
-                sleep(2);  // Wait 2 seconds before retrying
+                sleep(2);
                 continue;
             }
 
-            // If the request was successful, parse the data
             $data = json_decode($json, true);
-
-            // Check for missing data
-            if (isset($data['error']) && $data['error']['code'] == 429) {
+            if (isset($data['error']['code']) && $data['error']['code'] == 429) {
                 echo "Rate limit exceeded. Retrying...\n";
                 $retries++;
                 sleep(2);
                 continue;
             }
 
-            $success = true;  // If we reach here, the request was successful
+            // Optional: Save raw API response for debugging
+            file_put_contents("logs/response_{$gameId}.json", json_encode($data, JSON_PRETTY_PRINT));
+
+            $success = true;
         }
 
-        // If we exhausted retries, skip to next game
         if (!$success) {
             echo "Failed to fetch data for game $gameId after $max_retries retries. Skipping.\n";
             continue;
@@ -64,13 +77,16 @@ try {
 
             foreach ($players as $player) {
                 if (!isset($player['statistics'])) {
+                    echo "No stats for player {$player['id']} in game $gameId — skipping.\n";
                     continue;
                 }
 
                 $stats = $player['statistics'];
 
+                echo "Saving stats for game: $gameId, player: {$player['id']}\n";
+
                 $stmt = $pdo->prepare("
-                    INSERT IGNORE INTO player_game_stats (
+                    INSERT INTO player_game_stats (
                         game_id, player_id, team_id, is_home_team,
                         minutes_played, points, rebounds, assists,
                         steals, blocks, turnovers, fg_attempts, fg_made,
@@ -83,6 +99,20 @@ try {
                         :three_pt_attempts, :three_pt_made,
                         :free_throw_attempts, :free_throw_made
                     )
+                    ON DUPLICATE KEY UPDATE
+                        minutes_played = VALUES(minutes_played),
+                        points = VALUES(points),
+                        rebounds = VALUES(rebounds),
+                        assists = VALUES(assists),
+                        steals = VALUES(steals),
+                        blocks = VALUES(blocks),
+                        turnovers = VALUES(turnovers),
+                        fg_attempts = VALUES(fg_attempts),
+                        fg_made = VALUES(fg_made),
+                        three_pt_attempts = VALUES(three_pt_attempts),
+                        three_pt_made = VALUES(three_pt_made),
+                        free_throw_attempts = VALUES(free_throw_attempts),
+                        free_throw_made = VALUES(free_throw_made)
                 ");
 
                 $stmt->execute([
@@ -108,10 +138,11 @@ try {
         }
     }
 
-    echo "Player stats successfully imported.";
+    echo "Player stats successfully imported.\n";
+
 } catch (PDOException $e) {
-    echo "Database error: " . $e->getMessage();
+    echo "Database error: " . $e->getMessage() . "\n";
 } catch (Exception $e) {
-    echo "General error: " . $e->getMessage();
+    echo "General error: " . $e->getMessage() . "\n";
 }
 ?>

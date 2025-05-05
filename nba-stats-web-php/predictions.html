@@ -1,235 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- At the top of predictions.html -->
-<div id="header"></div>
-
-<script>
-  fetch("header.html")
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById("header").innerHTML = data;
-    });
-</script>
-
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NBA Predictions</title>
-  <link rel="stylesheet" href="style.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
-  <script src="ml_model.js"></script>
-  <style>
-    .prediction-container {
-      background-color: #1e3a8a;
-      color: white;
-      text-align: center;
-      padding: 40px 20px;
-      border-radius: 15px;
-      max-width: 500px;
-      margin: 40px auto;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    }
-    .instructions {
-      font-size: 1rem;
-      margin-bottom: 20px;
-      color: #dbeafe;
-    }
-    .input-box, .game-count-dropdown, .predict-button {
-      display: block;
-      margin: 10px auto;
-      padding: 10px;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: none;
-    }
-    .input-box { width: 80%; max-width: 300px; }
-    .game-count-dropdown {
-      width: 50%;
-      background-color: #3b82f6;
-      color: white;
-    }
-    .predict-button {
-      background-color: #f59e0b;
-      color: black;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    .predict-button:hover { background-color: #fbbf24; }
-    ul#suggestions, ul#teamSuggestions {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      color: white;
-    }
-    ul#suggestions li, ul#teamSuggestions li {
-      cursor: pointer;
-      padding: 5px;
-    }
-    ul#suggestions li:hover, ul#teamSuggestions li:hover {
-      background: #333;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>NBA Predictions - Player & Team Forecast</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #1D428A;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: white;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #1D428A 0%, #1F3A93 100%);
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .hero-section h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .hero-section p {
+            font-size: 20px;
+            color: #ccc;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 60px;
+            margin: 50px auto;
+            padding: 0 20px;
+            max-width: 1200px;
+        }
+        .prediction-box {
+            background-color: #1D428A;
+            border-radius: 15px;
+            padding: 30px;
+            width: 400px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.4);
+            text-align: center;
+            position: relative;
+        }
+        .prediction-box h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        .prediction-box input,
+        .prediction-box select,
+        .prediction-box button {
+            width: 90%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
+        }
+        .prediction-box button {
+            background-color: #FDB927;
+            color: #1D428A;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .prediction-box button:hover {
+            background-color: #ffcc50;
+        }
+        #output, #team-output {
+            margin-top: 20px;
+            text-align: left;
+            font-size: 16px;
+            color: #ffffff;
+        }
+        #suggestions, #teamSuggestions {
+            background: white;
+            color: black;
+            max-height: 150px;
+            overflow-y: auto;
+            border-radius: 6px;
+            margin-top: 5px;
+            position: absolute;
+            left: 5%;
+            width: 90%;
+            z-index: 10;
+        }
+        #suggestions li, #teamSuggestions li {
+            padding: 8px;
+            cursor: pointer;
+        }
+        #suggestions li:hover, #teamSuggestions li:hover {
+            background-color: #eee;
+        }
+        .how-it-works {
+            max-width: 800px;
+            margin: 50px auto;
+            text-align: center;
+            padding: 30px;
+            background: #16213E;
+            border-radius: 15px;
+        }
+        .how-it-works h2 {
+            margin-bottom: 20px;
+        }
+        .how-it-works ol {
+            text-align: left;
+            margin: 0 auto;
+            padding: 0;
+            list-style-position: inside;
+        }
+        .how-it-works li {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-  <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+<div id="header"></div>
+<script>
+fetch('header.html')
+  .then(res => res.text())
+  .then(data => document.getElementById('header').innerHTML = data);
+</script>
+<!-- Main Boxes -->
+<div class="container">
 
-    <!-- TEAM PREDICTION BOX -->
-    <div class="prediction-container">
-      <h2>NBA Team Predictions</h2>
-      <p class="instructions">
-        Choose the team you'd like to predict stats for in their next game.
-        Then select how many recent games you want the model to consider.
-      </p>
-      <input type="text" id="teamInput" placeholder="Type team name..." class="input-box" autocomplete="off">
-      <input type="hidden" id="team_id">
-      <ul id="teamSuggestions"></ul>
-      <select id="teamGameCount" class="game-count-dropdown">
-        <option value="5">Last 5 games</option>
-        <option value="10">Last 10 games</option>
-        <option value="15">Last 15 games</option>
-      </select>
-      <button onclick="fetchTeamPrediction()" class="predict-button">Predict</button>
-      <div id="teamPredictionOutput" style="margin-top: 20px;"></div>
+
+    <!-- Player Prediction Box -->
+    <div class="prediction-box">
+        <h2>NBA Stat Predictions</h2>
+        <p>Predict next game points, rebounds, assists, and more.</p>
+
+        <input type="text" id="playerInput" placeholder="Type player name..." autocomplete="off">
+        <input type="hidden" name="player_id" id="player_id">
+        <ul id="suggestions"></ul>
+
+        <select id="gameCount">
+            <option value="5">Last 5 games</option>
+            <option value="10">Last 10 games</option>
+            <option value="15">Last 15 games</option>
+        </select>
+
+        <button onclick="fetchPrediction()">Predict</button>
+
+        <div id="output"></div>
     </div>
 
-    <!-- PLAYER PREDICTION BOX -->
-    <div class="prediction-container">
-      <h2>NBA Stat Predictions</h2>
-      <p class="instructions">
-        Choose the player you'd like to predict stats for in their next game.
-        Then select how many recent games you want the model to consider.
-      </p>
-      <input type="text" id="playerInput" placeholder="Type player name..." class="input-box" autocomplete="off">
-      <ul id="suggestions"></ul>
-      <select id="gameCount" class="game-count-dropdown">
-        <option value="5">Last 5 games</option>
-        <option value="10">Last 10 games</option>
-        <option value="15">Last 15 games</option>
-      </select>
-      <button onclick="fetchPrediction()" class="predict-button">Predict</button>
-      <div id="output"></div>
-    </div>
-
-  </div>
+</div>
 
 <script>
+// Autocomplete for Players
 document.getElementById("playerInput").addEventListener("input", async function() {
-  const query = this.value;
-  const suggestionsBox = document.getElementById("suggestions");
-  suggestionsBox.innerHTML = "";
-
-  if (query.length < 2) return;
-
-  const res = await fetch(`suggest_players.php?term=${encodeURIComponent(query)}`);
-  const players = await res.json();
-
-  players.forEach(player => {
-    const li = document.createElement("li");
-    li.textContent = player.label;
-    li.onclick = () => {
-      document.getElementById("playerInput").value = player.label;
-      document.getElementById("playerInput").dataset.playerId = player.value;
-      suggestionsBox.innerHTML = "";
-    };
-    suggestionsBox.appendChild(li);
-  });
+    const query = this.value;
+    const suggestionsBox = document.getElementById("suggestions");
+    suggestionsBox.innerHTML = "";
+    if (query.length < 2) return;
+    const res = await fetch(`suggest_players.php?term=${encodeURIComponent(query)}`);
+    const players = await res.json();
+    players.forEach(player => {
+        const li = document.createElement("li");
+        li.textContent = player.label;
+        li.onclick = () => {
+            document.getElementById("playerInput").value = player.label;
+            document.getElementById("player_id").value = player.value;
+            suggestionsBox.innerHTML = "";
+        };
+        suggestionsBox.appendChild(li);
+    });
 });
 
-document.getElementById("teamInput").addEventListener("input", async function () {
-  const query = this.value;
-  const suggestionsBox = document.getElementById("teamSuggestions");
-  suggestionsBox.innerHTML = "";
-
-  if (query.length < 2) return;
-
-  const res = await fetch(`suggest_teams.php?term=${encodeURIComponent(query)}`);
-  const teams = await res.json();
-
-  teams.forEach(team => {
-    const li = document.createElement("li");
-    li.textContent = team.label;
-    li.onclick = () => {
-      document.getElementById("teamInput").value = team.label;
-      document.getElementById("team_id").value = team.value;
-      suggestionsBox.innerHTML = "";
-    };
-    suggestionsBox.appendChild(li);
-  });
-});
-
-window.onload = loadModel;
-
+// Fetch Prediction for Player
 async function fetchPrediction() {
-  const playerInput = document.getElementById('playerInput');
-  const playerId = playerInput.dataset.playerId;
-  const count = document.getElementById('gameCount').value;
+    const playerId = document.getElementById('player_id').value;
+    const count = document.getElementById('gameCount').value;
+    if (!playerId) return alert("Please select a player.");
 
-  if (!playerId) {
-    alert("Please select a player from the suggestions.");
-    return;
-  }
-
-  try {
-    const response = await fetch(`predictions.php?player_id=${playerId}&count=${count}`);
-    const data = await response.json();
-
+    const res = await fetch(`predictions.php?player_id=${playerId}&count=${count}`);
+    const data = await res.json();
     if (data.error) {
-      alert("Error from backend: " + data.error);
-      return;
+        document.getElementById('output').innerHTML = `<p style="color:red;">${data.error}</p>`;
+    } else {
+        document.getElementById('output').innerHTML = `
+            <p><strong>Points:</strong> ${data.points}</p>
+            <p><strong>Rebounds:</strong> ${data.rebounds}</p>
+            <p><strong>Assists:</strong> ${data.assists}</p>
+            <p><strong>Steals:</strong> ${data.steals}</p>
+            <p><strong>Blocks:</strong> ${data.blocks}</p>
+            <p><strong>Turnovers:</strong> ${data.turnovers}</p>
+        `;
     }
-
-    const predicted = await predictWithML(data);
-
-    document.getElementById('output').innerHTML = `
-      <p><strong>Points:</strong> ${predicted.points}</p>
-      <p><strong>Rebounds:</strong> ${predicted.rebounds}</p>
-      <p><strong>Assists:</strong> ${predicted.assists}</p>
-      <p><strong>Steals:</strong> ${predicted.steals}</p>
-      <p><strong>Blocks:</strong> ${predicted.blocks}</p>
-      <p><strong>Turnovers:</strong> ${predicted.turnovers}</p>
-    `;
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong.");
-  }
 }
 
+// Autocomplete for Teams
+document.getElementById("teamInput").addEventListener("input", async function() {
+    const query = this.value;
+    const suggestionsBox = document.getElementById("teamSuggestions");
+    suggestionsBox.innerHTML = "";
+    if (query.length < 2) return;
+    const res = await fetch(`suggest_teams.php?term=${encodeURIComponent(query)}`);
+    const teams = await res.json();
+    teams.forEach(team => {
+        const li = document.createElement("li");
+        li.textContent = team.label;
+        li.onclick = () => {
+            document.getElementById("teamInput").value = team.label;
+            document.getElementById("team_id").value = team.value;
+            suggestionsBox.innerHTML = "";
+        };
+        suggestionsBox.appendChild(li);
+    });
+});
+
+// Fetch Prediction for Team
 async function fetchTeamPrediction() {
-  const teamInput = document.getElementById("teamInput");
-  const teamId = document.getElementById("team_id").value;
-  const windowSize = document.getElementById("teamGameCount").value;
+    const teamId = document.getElementById('team_id').value;
+    const count = document.getElementById('team_gameCount').value;
+    if (!teamId) return alert("Please select a team.");
 
-  if (!teamId) {
-    alert("Please select a team from the suggestions.");
-    return;
-  }
+    const formData = new FormData();
+    formData.append("team_id", teamId);
+    formData.append("game_window", count);
 
-  try {
-    const response = await fetch("team_predict.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        team_id: teamId,
-        game_window: windowSize
-      })
+    const res = await fetch('team_predict.php', {
+        method: 'POST',
+        body: formData
     });
 
-    const result = await response.json();
-    if (result.error) {
-      document.getElementById("teamPredictionOutput").innerHTML = `<p style="color: red;">${result.error}</p>`;
+    const data = await res.json();
+    if (data.error) {
+        document.getElementById('team-output').innerHTML = `<p style="color:red;">${data.error}</p>`;
     } else {
-      document.getElementById("teamPredictionOutput").innerHTML = `
-        <p><strong>Win Rate:</strong> ${result.win_rate}%</p>
-        <p><strong>Avg Points Scored:</strong> ${result.avg_points}</p>
-        <p><strong>Avg Points Allowed:</strong> ${result.avg_allowed}</p>
-      `;
+        document.getElementById('team-output').innerHTML = `
+            <p><strong>Team:</strong> ${data.team}</p>
+            <p><strong>Win Rate (Last ${count} Games):</strong> ${data.win_rate}%</p>
+            <p><strong>Avg Points Scored:</strong> ${data.avg_points_scored}</p>
+            <p><strong>Avg Points Allowed:</strong> ${data.avg_points_allowed}</p>
+        `;
     }
-  } catch (err) {
-    console.error(err);
-    alert("Failed to get team prediction.");
-  }
 }
-
 </script>
+
 </body>
 </html>

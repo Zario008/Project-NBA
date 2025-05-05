@@ -21,16 +21,20 @@
         }
         h1, h2 {
             color: #FDB927;
+            text-align: center;
         }
         table {
-            width: 100%;
+            margin: 0 auto; /* Center table */
             border-collapse: collapse;
-            margin-top: 12px;
+            margin-top: 20px;
+            width: 80%;
+            background-color: #0E2240;
         }
         th, td {
+            text-align: center; /* Center text inside cells */
             padding: 10px;
             border: 1px solid #FDB927;
-            text-align: center;
+            color: white;
         }
         th {
             background-color: #FDB927;
@@ -40,84 +44,81 @@
     <script>
         let currentPage = 1;
         
-    async function loadStats() {
-    const team = document.getElementById("team-filter").value;
-    const position = document.getElementById("position-filter").value;
-    const sortBy = document.getElementById("sort-by").value;
-    const order = document.getElementById("order").value;
+        async function loadStats() {
+            const team = document.getElementById("team-filter").value;
+            const position = document.getElementById("position-filter").value;
+            const sortBy = document.getElementById("sort-by").value;
+            const order = document.getElementById("order").value;
 
-    const url = `player_stats.php?team_id=${team}&position=${position}&sort_by=${sortBy}&order=${order}&page=${currentPage}`;
+            const url = `player_stats.php?team_id=${team}&position=${position}&sort_by=${sortBy}&order=${order}&page=${currentPage}`;
 
-    console.log("Fetching URL:", url); // Debugging Line
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
 
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
+                if (!data.players.length) {
+                    document.getElementById("stats-container").innerHTML = "<p>No players found.</p>";
+                    return;
+                }
 
-        console.log("Response Data:", data); // Debugging Line
+                let output = `<table>
+                                <tr>
+                                    <th onclick="sortTable('first_name')">Name</th>
+                                    <th>Position</th>
+                                    <th>Team</th>
+                                    <th onclick="sortTable('avg_points')">Points</th>
+                                    <th onclick="sortTable('avg_rebounds')">Rebounds</th>
+                                    <th onclick="sortTable('avg_assists')">Assists</th>
+                                    <th onclick="sortTable('avg_steals')">Steals</th>
+                                    <th onclick="sortTable('avg_blocks')">Blocks</th>
+                                </tr>`;
 
-        if (!data.players.length) {
-            document.getElementById("stats-container").innerHTML = "<p>No players found.</p>";
-            return;
+                data.players.forEach(player => {
+                    output += `<tr>
+                                    <td>${player.first_name} ${player.last_name}</td>
+                                    <td>${player.position}</td>
+                                    <td>${player.team_name}</td>
+                                    <td>${player.avg_points}</td>
+                                    <td>${player.avg_rebounds}</td>
+                                    <td>${player.avg_assists}</td>
+                                    <td>${player.avg_steals}</td>
+                                    <td>${player.avg_blocks}</td>
+                                </tr>`;
+                });
+
+                output += `</table>`;
+
+              
+                output += `<button onclick="changePage(-1)" ${currentPage === 1 ? "disabled" : ""}>Previous</button>`;
+                output += `<button onclick="changePage(1)" ${currentPage >= data.total_pages ? "disabled" : ""}>Next</button>`;
+
+                document.getElementById("stats-container").innerHTML = output;
+
+            } catch (error) {
+                console.error("Error fetching player stats:", error);
+            }
         }
 
-        let output = `<table>
-                        <tr>
-                            <th onclick="sortTable('first_name')">Name</th>
-                            <th>Position</th>
-                            <th>Team</th>
-                            <th onclick="sortTable('avg_points')">Points</th>
-                            <th onclick="sortTable('avg_rebounds')">Rebounds</th>
-                            <th onclick="sortTable('avg_assists')">Assists</th>
-                            <th onclick="sortTable('avg_steals')">Steals</th>
-                            <th onclick="sortTable('avg_blocks')">Blocks</th>
-                        </tr>`;
-
-        data.players.forEach(player => {
-            output += `<tr>
-                            <td>${player.first_name} ${player.last_name}</td>
-                            <td>${player.position}</td>
-                            <td>${player.team_name}</td>
-                            <td>${player.avg_points}</td>
-                            <td>${player.avg_rebounds}</td>
-                            <td>${player.avg_assists}</td>
-                            <td>${player.avg_steals}</td>
-                            <td>${player.avg_blocks}</td>
-                        </tr>`;
-        });
-
-        output += `</table>`;
-
-        // Pagination
-        output += `<button onclick="changePage(-1)" ${currentPage === 1 ? "disabled" : ""}>Previous</button>`;
-        output += `<button onclick="changePage(1)" ${currentPage >= data.total_pages ? "disabled" : ""}>Next</button>`;
-
-        document.getElementById("stats-container").innerHTML = output;
-
-    } catch (error) {
-        console.error("Error fetching player stats:", error);
-    }
-}
         function changePage(direction) {
             currentPage += direction;
             loadStats();
         }
 
         function sortTable(stat) {
-    const sortByElement = document.getElementById("sort-by");
-    const orderElement = document.getElementById("order");
+            const sortByElement = document.getElementById("sort-by");
+            const orderElement = document.getElementById("order");
 
-    if (sortByElement.value === stat) {
-        orderElement.value = orderElement.value === "asc" ? "desc" : "asc";
-    } else {
-        sortByElement.value = stat;
-        orderElement.value = "desc"; // Default to descending when changing columns
-    }
-    loadStats();
-}
+            if (sortByElement.value === stat) {
+                orderElement.value = orderElement.value === "asc" ? "desc" : "asc";
+            } else {
+                sortByElement.value = stat;
+                orderElement.value = "desc"; // Default to descending when switching columns
+            }
+            loadStats();
+        }
 
         async function loadTeams() {
-            const response = await fetch("get_teams.php");
+            const response = await fetch("get_teams_db.php");
             const teams = await response.json();
             const teamFilter = document.getElementById("team-filter");
             teamFilter.innerHTML = '<option value="">All Teams</option>';
@@ -132,38 +133,46 @@
         });
     </script>
 </head>
+
 <body>
     <div id="header"></div>
-    <script>fetch('header.html').then(res => res.text()).then(data => document.getElementById('header').innerHTML = data);</script>
+    <script>
+        fetch('header.html').then(res => res.text()).then(data => {
+            document.getElementById('header').innerHTML = data;
+        });
+    </script>
+
     <div class="container">
         <h1>NBA Player Stats</h1>
-        
-        <select id="team-filter" onchange="loadStats()">
-            <option value="">All Teams</option>
-        </select>
+        <p style="text-align: center;">Explore player performance stats like Points, Rebounds, Assists, and more from the season data!</p>
 
-        
-        <select id="position-filter" onchange="loadStats()">
-            <option value="">All Positions</option>
-            <option value="PG">Point Guard</option>
-            <option value="SG">Shooting Guard</option>
-            <option value="SF">Small Forward</option>
-            <option value="PF">Power Forward</option>
-            <option value="C">Center</option>
-        </select>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <select id="team-filter" onchange="loadStats()">
+                <option value="">All Teams</option>
+            </select>
 
-        <select id="sort-by" onchange="loadStats()">
-            <option value="avg_points">Points</option>
-            <option value="avg_rebounds">Rebounds</option>
-            <option value="avg_assists">Assists</option>
-            <option value="avg_steals">Steals</option>
-            <option value="avg_blocks">Blocks</option>
-        </select>
+            <select id="position-filter" onchange="loadStats()">
+                <option value="">All Positions</option>
+                <option value="PG">Point Guard</option>
+                <option value="SG">Shooting Guard</option>
+                <option value="SF">Small Forward</option>
+                <option value="PF">Power Forward</option>
+                <option value="C">Center</option>
+            </select>
 
-        <select id="order" onchange="loadStats()">
-            <option value="desc">Descending</option>
-            <option value="asc">Ascending</option>
-        </select>
+            <select id="sort-by" onchange="loadStats()">
+                <option value="avg_points">Points</option>
+                <option value="avg_rebounds">Rebounds</option>
+                <option value="avg_assists">Assists</option>
+                <option value="avg_steals">Steals</option>
+                <option value="avg_blocks">Blocks</option>
+            </select>
+
+            <select id="order" onchange="loadStats()">
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+            </select>
+        </div>
 
         <div id="stats-container">
             <p>Loading player stats...</p>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Player Comparisons</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+    .player-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px; /* space between cards */
+        justify-content: center; 
+        margin-top: 20px;
+    }
+    
+    .player-card {
+        background-color: #2b4d88; 
+        color: white;
+        padding: 16px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        width: 23%; /* four cards per row with gap */
+        box-sizing: border-box;
+        min-width: 220px; /* helps responsiveness */
+    }
+    
+    @media (max-width: 1000px) {
+        .player-card {
+            width: 45%; /* two per row on tablets */
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .player-card {
+            width: 100%; /* full width on mobile */
+        }
+    }
+    </style>
+    <script>
+        function searchPlayers() {
+            let query = document.getElementById('playerSearch').value;
+            if (query.length < 2) return;
+            
+            fetch('comparisons.php?search=' + encodeURIComponent(query))
+                .then(response => response.json())
+                .then(data => {
+                    let suggestions = document.getElementById('suggestions');
+                    suggestions.innerHTML = '';
+                    data.forEach(player => {
+                        let option = document.createElement('div');
+                        option.classList.add('suggestion-item');
+                        option.textContent = `${player.first_name} ${player.last_name}`;
+                        option.onclick = function() { selectPlayer(player); };
+                        suggestions.appendChild(option);
+                    });
+                })
+                .catch(error => console.log('Error fetching players:', error));
+        }
+        
+        let selectedPlayerIds = new Set(); // Track selected players
+
+function selectPlayer(player) {
+    if (selectedPlayerIds.has(player.player_id)) {
+        alert("This player is already selected.");
+        return;
+    }
+    
+    selectedPlayerIds.add(player.player_id);
+
+    let container = document.getElementById('selectedPlayers');
+    
+    // Create player card
+    let playerDiv = document.createElement('div');
+    playerDiv.classList.add('player-card');
+    playerDiv.setAttribute('data-player-id', player.player_id);
+    playerDiv.innerHTML = `
+        <h3>${player.first_name} ${player.last_name}</h3>
+        <p>Position: ${player.position}</p>
+        <p>Height: ${player.height} in</p>
+        <p>Weight: ${player.weight} lbs</p>
+        <div class="player-stats" id="stats-${player.player_id}">Loading stats...</div>
+        <button onclick="removePlayer('${player.player_id}')">Remove</button>
+    `;
+    
+    container.appendChild(playerDiv);
+    
+    // Fetch player stats
+    fetch(`comparisons.php?player_id=${player.player_id}`)
+        .then(response => response.json())
+        .then(stats => {
+            let statsDiv = document.getElementById(`stats-${player.player_id}`);
+            statsDiv.innerHTML = stats.length ? stats.map(stat => `
+                <p>Season: ${stat.season_year} (${stat.season_type})</p>
+                <p>Points: ${stat.avg_points}</p>
+                <p>Rebounds: ${stat.avg_rebounds}</p>
+                <p>Assists: ${stat.avg_assists}</p>
+                <p>Steals: ${stat.avg_steals}</p>
+                <p>Blocks: ${stat.avg_blocks}</p>
+                <p>Turnovers: ${stat.avg_turnovers}</p>
+                <p>Minutes: ${stat.avg_minutes}</p>
+                <hr>
+            `).join('') : "<p>No stats available.</p>";
+        })
+        .catch(error => console.log('Error fetching player stats:', error));
+}
+
+function removePlayer(playerId) {
+    let container = document.getElementById('selectedPlayers');
+    let playerDiv = document.querySelector(`.player-card[data-player-id='${playerId}']`);
+    
+    if (playerDiv) {
+        container.removeChild(playerDiv);
+        selectedPlayerIds.delete(playerId); // Remove player from selected list
+    }
+}
+
+    </script>
+</head>
+<body>
+    <div id="header"></div>
+    <script>fetch('header.html').then(res => res.text()).then(data => document.getElementById('header').innerHTML = data);</script>
+
+    <div class="container">
+        <h1>NBA Player Comparisons</h1>
+        <input type="text" id="playerSearch" onkeyup="searchPlayers()" placeholder="Search for a player...">
+        <div id="suggestions" class="suggestions"></div>
+        <div id="selectedPlayers" class="player-container"></div>
+    </div>
+</body>
+</html>
